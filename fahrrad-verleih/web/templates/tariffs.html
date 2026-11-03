@@ -1,0 +1,47 @@
+{{define "content"}}{{$c := .Content}}
+<section class="tariff-cards" aria-label="Stundensätze">
+  {{range $c.Rows}}
+  <article class="tariff tariff-{{.Category.Key}}">
+    <div class="tariff-icon">{{if eq .Category.Key "ebike"}}{{template "icon-bolt"}}{{else}}{{template "icon-bike"}}{{end}}</div>
+    <h2>{{.Category.Label}}</h2>
+    <p class="tariff-price" data-rate="{{.Category.Key}}">{{.Rate}}<span> / Std</span></p>
+    <p class="muted">{{.Rule}}</p>
+    <a class="btn btn-small btn-secondary" href="/verfuegbarkeit?typ={{.Category.Key}}">Freie {{.Category.Label}}s</a>
+  </article>
+  {{end}}
+</section>
+
+<div class="stack">
+  <section class="card">
+    <div class="card-header"><h2>So wird gerechnet</h2></div>
+    <ul class="rules">
+      <li><strong>Preis = angefangene Stunden × Stundensatz</strong> des Fahrradtyps.</li>
+      <li>Jede angefangene Stunde zählt voll: 2 Std 15 Min werden als 3 Stunden berechnet.</li>
+      <li>Mindestens 1 Stunde. Buchungen dauern mindestens {{formatLimit $c.Limits.MinDuration}} und höchstens {{formatLimit $c.Limits.MaxDuration}}.</li>
+      <li>Der Beginn darf nicht in der Vergangenheit liegen. „Sofort“ beginnt in der aktuellen Minute.</li>
+      <li>Vorzeitige Rückgabe: Es gilt der gebuchte Preis. Verspätete Rückgabe: Jede weitere angefangene Stunde wird nachberechnet.</li>
+    </ul>
+    <p class="muted small">Die Stundensätze werden beim Start im Fahrrad-Plugin konfiguriert, z. B. <code>go run . -tarife "citybike=6,ebike=14"</code>.</p>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h2>Rechenbeispiele</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Typ</th><th>Zeitraum</th><th>Dauer</th><th>Rechnung</th><th class="num">Preis</th></tr></thead>
+        <tbody>
+        {{range $c.Examples}}
+          <tr>
+            <td class="nowrap">{{.Category}}</td>
+            <td class="nowrap">{{.Label}}</td>
+            <td class="nowrap">{{formatDuration .Duration}}</td>
+            <td class="muted nowrap">{{.Price.Explanation}}</td>
+            <td class="num nowrap strong">{{.Price.Amount}}</td>
+          </tr>
+        {{end}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{{end}}

@@ -1,0 +1,61 @@
+{{define "content"}}{{$f := .Content}}
+<section class="card card-form">
+  <form method="post" action="{{if $f.ID}}/ski/{{$f.ID}}{{else}}/ski{{end}}" novalidate>
+    <div class="form-grid">
+      <div class="field">
+        <label for="brand">Marke *</label>
+        <input id="brand" name="brand" value="{{$f.Brand}}" maxlength="50" required {{if index $f.Errors "brand"}}class="is-invalid" aria-describedby="brand-error"{{end}}>
+        {{with index $f.Errors "brand"}}<p class="field-error" id="brand-error">{{.}}</p>{{end}}
+      </div>
+      <div class="field">
+        <label for="model">Modell *</label>
+        <input id="model" name="model" value="{{$f.Model}}" maxlength="50" required {{if index $f.Errors "model"}}class="is-invalid" aria-describedby="model-error"{{end}}>
+        {{with index $f.Errors "model"}}<p class="field-error" id="model-error">{{.}}</p>{{end}}
+      </div>
+      <div class="field">
+        <label for="length">Länge in cm *</label>
+        <input id="length" name="length" type="number" min="70" max="220" value="{{$f.Length}}" required {{if index $f.Errors "length"}}class="is-invalid" aria-describedby="length-error"{{end}}>
+        {{with index $f.Errors "length"}}<p class="field-error" id="length-error">{{.}}</p>{{else}}<p class="field-hint">70–220 cm</p>{{end}}
+      </div>
+      <div class="field">
+        <label for="type">Typ *</label>
+        <select id="type" name="type" {{if index $f.Errors "type"}}class="is-invalid"{{end}}>
+          {{range skiTypes}}<option value="{{.}}" {{if eq (print .) $f.Type}}selected{{end}}>{{.Label}}</option>{{end}}
+        </select>
+        {{with index $f.Errors "type"}}<p class="field-error">{{.}}</p>{{end}}
+      </div>
+      <div class="field">
+        <label for="condition">Zustand *</label>
+        <select id="condition" name="condition" {{if index $f.Errors "condition"}}class="is-invalid"{{end}}>
+          {{range conditions}}<option value="{{.}}" {{if eq (print .) $f.Condition}}selected{{end}}>{{.Label}}</option>{{end}}
+        </select>
+        {{with index $f.Errors "condition"}}<p class="field-error">{{.}}</p>{{end}}
+      </div>
+      {{if $f.ID}}
+      <div class="field">
+        <label for="status">Status</label>
+        {{if $f.StatusLocked}}
+          <input type="hidden" name="status" value="{{$f.Status}}">
+          <select id="status" disabled><option>Gesperrt</option></select>
+          <p class="field-hint">Der Ski ist ausgeliehen oder reserviert. Er kann erst auf Wartung gesetzt werden, wenn keine Buchung mehr offen ist.</p>
+        {{else}}
+          <select id="status" name="status" {{if index $f.Errors "status"}}class="is-invalid"{{end}}>
+            {{range manualStatuses}}<option value="{{.}}" {{if eq (print .) $f.Status}}selected{{end}}>{{.Label}}</option>{{end}}
+          </select>
+          {{with index $f.Errors "status"}}<p class="field-error">{{.}}</p>{{end}}
+        {{end}}
+      </div>
+      {{end}}
+      <div class="field field-wide">
+        <label for="note">Notiz</label>
+        <textarea id="note" name="note" rows="3" maxlength="200" {{if index $f.Errors "note"}}class="is-invalid"{{end}}>{{$f.Note}}</textarea>
+        {{with index $f.Errors "note"}}<p class="field-error">{{.}}</p>{{else}}<p class="field-hint">optional, max. 200 Zeichen</p>{{end}}
+      </div>
+    </div>
+    <div class="form-actions">
+      <a class="btn btn-secondary" href="{{if $f.ID}}/ski/{{$f.ID}}{{else}}/ski{{end}}">Abbrechen</a>
+      <button class="btn btn-primary" type="submit">{{if $f.ID}}Speichern{{else}}Ski anlegen{{end}}</button>
+    </div>
+  </form>
+</section>
+{{end}}

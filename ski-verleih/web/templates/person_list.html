@@ -1,0 +1,49 @@
+{{define "actions"}}<a class="btn btn-primary" href="/personen/neu">{{template "icon-user-plus"}}<span>Neue Person</span></a>{{end}}
+
+{{define "content"}}{{$c := .Content}}
+<section class="card">
+  <form class="search" method="get" action="/personen" role="search">
+    <label class="sr-only" for="q">Suche</label>
+    <span class="search-icon">{{template "icon-search"}}</span>
+    <input id="q" name="q" type="search" value="{{$c.Query}}" placeholder="Name oder Ausweisnummer suchen">
+    <button class="btn btn-secondary" type="submit">Suchen</button>
+    {{if $c.Query}}<a class="btn btn-secondary" href="/personen">Zurücksetzen</a>{{end}}
+  </form>
+
+  {{if $c.Rows}}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Name</th><th>Ausweis</th><th>Nummer</th><th>Aktiv</th><th>Reserviert</th><th><span class="sr-only">Aktionen</span></th></tr></thead>
+      <tbody>
+      {{range $c.Rows}}{{$p := .Person}}
+        <tr>
+          <td class="muted">{{$p.ID}}</td>
+          <td><a class="strong" href="/personen/{{$p.ID}}">{{$p.FullName}}</a></td>
+          <td>{{$p.IDType.Label}}{{if $p.HasIDImage}} <span class="badge badge-info" title="Ausweisbild hinterlegt">Bild</span>{{end}}</td>
+          <td class="mono">{{$p.MaskedIDNumber}}</td>
+          <td>{{if .ActiveRentals}}<span class="badge badge-ausgeliehen">{{.ActiveRentals}}</span>{{else}}<span class="muted">0</span>{{end}}</td>
+          <td>{{if .Reservations}}<span class="badge badge-reserviert">{{.Reservations}}</span>{{else}}<span class="muted">0</span>{{end}}</td>
+          <td class="cell-action">
+            <a class="btn btn-small btn-primary" href="/ausleihen/neu?person={{$p.ID}}">Ausleihen</a>
+            <a class="btn btn-small btn-secondary" href="/personen/{{$p.ID}}/bearbeiten" aria-label="{{$p.FullName}} bearbeiten">{{template "icon-edit"}}</a>
+          </td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else if $c.Query}}
+  <div class="empty">
+    <div class="empty-icon">{{template "icon-search"}}</div>
+    <p>Keine Person passt zu „{{$c.Query}}“.</p>
+    <a class="btn btn-secondary" href="/personen">Alle Personen anzeigen</a>
+  </div>
+  {{else}}
+  <div class="empty">
+    <div class="empty-icon">{{template "icon-users"}}</div>
+    <p>Noch keine Personen registriert.</p>
+    <a class="btn btn-primary" href="/personen/neu">Erste Person registrieren</a>
+  </div>
+  {{end}}
+</section>
+{{end}}

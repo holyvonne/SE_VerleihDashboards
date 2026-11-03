@@ -1,0 +1,12 @@
+{{define "content"}}
+<section class="card">
+  <div class="empty">
+    <div class="empty-icon empty-icon-danger">{{template "icon-alert"}}</div>
+    <p class="empty-title">{{.Content}}</p>
+    <div class="button-row">
+      <a class="btn btn-secondary" href="/buchungen">Zu den Buchungen</a>
+      <a class="btn btn-primary" href="/">Zum Dashboard</a>
+    </div>
+  </div>
+</section>
+{{end}}

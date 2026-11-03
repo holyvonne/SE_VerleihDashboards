@@ -1,0 +1,51 @@
+{{define "content"}}{{$c := .Content}}{{$v := $c.View}}
+<section class="card">
+  <div class="card-header"><h2>Buchung</h2><span>{{template "booking-badge" $v}}</span></div>
+  <dl class="facts">
+    <dt>Fahrrad</dt><dd>{{$v.Item.Name}} {{template "bike-type" $v.Item}}</dd>
+    <dt>Person</dt><dd>{{$v.Person.FullName}}</dd>
+    <dt>Zeitraum</dt><dd>{{formatTime $v.Booking.Start}} – {{formatTime $v.Booking.PlannedEnd}}</dd>
+    <dt>Preis bisher</dt><dd>{{$v.Price.Amount}} <span class="muted">({{$v.Price.Explanation}})</span></dd>
+  </dl>
+  {{if $v.Conflict}}<p class="hint-danger">{{template "icon-alert"}}<span>Das Fahrrad ist noch durch eine überfällige Ausleihe belegt.</span></p>{{end}}
+</section>
+
+<section class="card">
+  <div class="card-header"><h2>Freie Fahrräder im selben Zeitraum</h2></div>
+  {{if $c.Offers}}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Fahrrad</th><th>Typ</th><th>Rahmen</th><th>Neuer Preis</th><th><span class="sr-only">Aktion</span></th></tr></thead>
+      <tbody>
+      {{range $c.Offers}}
+        <tr>
+          <td><a class="strong" href="/fahrraeder/{{.View.Item.ID}}">{{.View.Name}}</a></td>
+          <td class="nowrap">{{template "bike-type" .View}}</td>
+          <td>{{.View.Item.Attr "rahmengroesse"}}</td>
+          <td class="nowrap"><span class="strong">{{.Price.Amount}}</span><br><span class="muted small">{{.Price.Explanation}}</span></td>
+          <td class="cell-action">
+            <form method="post" action="/buchungen/{{$v.Booking.ID}}/umbuchen">
+              <input type="hidden" name="fahrrad" value="{{.View.Item.ID}}">
+              <button class="btn btn-small btn-primary" type="submit">{{template "icon-swap"}}<span>Auf dieses Fahrrad umbuchen</span></button>
+            </form>
+          </td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="empty empty-compact">
+    <div class="empty-icon">{{template "icon-bike"}}</div>
+    <p>Im Zeitraum ist kein anderes Fahrrad frei. Du kannst die Buchung stornieren.</p>
+  </div>
+  {{end}}
+  <div class="form-actions">
+    <a class="btn btn-secondary" href="/buchungen?status=reserviert">Zurück</a>
+    <form method="post" action="/buchungen/{{$v.Booking.ID}}/stornieren">
+      <input type="hidden" name="zurueck" value="/buchungen?status=reserviert">
+      <button class="btn btn-secondary btn-danger-outline" type="submit">{{template "icon-x"}}<span>Buchung stornieren</span></button>
+    </form>
+  </div>
+</section>
+{{end}}

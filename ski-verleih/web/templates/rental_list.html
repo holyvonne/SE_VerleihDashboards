@@ -1,0 +1,38 @@
+{{define "actions"}}<a class="btn btn-primary" href="/ausleihen/neu">{{template "icon-plus"}}<span>Neue Ausleihe</span></a>{{end}}
+
+{{define "content"}}{{$c := .Content}}
+<section class="card">
+  <nav class="tabs" aria-label="Buchungen filtern">
+    {{range $c.Tabs}}<a href="{{.URL}}" {{if .Active}}class="active" aria-current="page"{{end}}>{{.Label}}</a>{{end}}
+  </nav>
+
+  {{if $c.Rentals}}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Ski</th><th>Person</th><th>Zeitraum</th><th>Rückgabe</th><th>Dauer</th><th>Preis</th><th>Status</th><th><span class="sr-only">Aktion</span></th></tr></thead>
+      <tbody>
+      {{range $c.Rentals}}
+        <tr>
+          <td class="muted">{{.Rental.ID}}</td>
+          <td><a href="/ski/{{.Ski.ID}}">{{.Ski.Name}}</a></td>
+          <td><a href="/personen/{{.Person.ID}}">{{.Person.FullName}}</a></td>
+          <td class="nowrap">{{formatTime .Rental.Start}}<br><span class="muted">bis {{formatTime .Rental.PlannedEnd}}</span></td>
+          <td class="nowrap">{{with .Rental.ReturnedAt}}{{formatTime .}}{{else}}<span class="muted">–</span>{{end}}</td>
+          <td class="nowrap">{{formatDuration .Duration}}</td>
+          <td class="nowrap strong">{{.Price}}</td>
+          <td class="nowrap">{{template "rental-badge" .}}</td>
+          <td class="cell-action">{{template "rental-action" (dict "View" . "Back" $c.Back)}}</td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="empty">
+    <div class="empty-icon">{{template "icon-clipboard"}}</div>
+    <p>{{if eq $c.Filter "aktiv"}}Keine aktiven Ausleihen.{{else if eq $c.Filter "reserviert"}}Keine anstehenden Reservierungen.{{else if eq $c.Filter "abgeschlossen"}}Noch keine abgeschlossenen Ausleihen.{{else}}Noch keine Buchungen.{{end}}</p>
+    <a class="btn btn-primary" href="/ausleihen/neu">Ski ausleihen oder reservieren</a>
+  </div>
+  {{end}}
+</section>
+{{end}}

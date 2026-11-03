@@ -1,0 +1,167 @@
+{{define "actions"}}<a class="btn btn-secondary" href="/verfuegbarkeit">{{template "icon-search"}}<span>Verfügbarkeit</span></a>
+<a class="btn btn-primary" href="/buchungen/neu">{{template "icon-plus"}}<span>Neue Buchung</span></a>{{end}}
+
+{{define "content"}}{{$s := .Content}}
+{{if $s.Conflicts}}
+<section class="card card-alert" aria-labelledby="conflicts-title">
+  <div class="card-header">
+    <h2 id="conflicts-title">{{template "icon-alert"}} <span>{{len $s.Conflicts}} {{if eq (len $s.Conflicts) 1}}Buchung ist{{else}}Buchungen sind{{end}} durch verspätete Rückgaben gefährdet</span></h2>
+  </div>
+  <p class="muted alert-text">Das Fahrrad ist noch nicht zurück. Buche auf ein freies Fahrrad um oder storniere die Buchung.</p>
+  {{template "booking-table" (dict "Rows" $s.Conflicts "Back" "/" "Show" "both")}}
+</section>
+{{end}}
+
+<section class="kpis" aria-label="Kennzahlen">
+  <article class="kpi kpi-green">
+    <div class="kpi-icon">{{template "icon-check"}}</div>
+    <div>
+      <p class="kpi-value" data-kpi="available">{{$s.Available}}</p>
+      <p class="kpi-label">Verfügbar</p>
+    </div>
+  </article>
+  <article class="kpi kpi-orange">
+    <div class="kpi-icon">{{template "icon-clock"}}</div>
+    <div>
+      <p class="kpi-value" data-kpi="rented">{{$s.Rented}}</p>
+      <p class="kpi-label">Ausgeliehen</p>
+      {{if $s.Overdue}}<p class="kpi-hint kpi-hint-danger" data-kpi="overdue">davon {{$s.Overdue}} überfällig</p>{{end}}
+    </div>
+  </article>
+  <article class="kpi kpi-cyan">
+    <div class="kpi-icon">{{template "icon-calendar"}}</div>
+    <div>
+      <p class="kpi-value" data-kpi="reserved">{{$s.Reserved}}</p>
+      <p class="kpi-label">Reserviert</p>
+    </div>
+  </article>
+  <article class="kpi kpi-blue">
+    <div class="kpi-icon">{{template "icon-bike"}}</div>
+    <div>
+      <p class="kpi-value" data-kpi="total">{{$s.Total}}</p>
+      <p class="kpi-label">Fahrräder gesamt</p>
+      {{if $s.Maintenance}}<p class="kpi-hint">davon {{$s.Maintenance}} in Wartung</p>{{end}}
+    </div>
+  </article>
+  <article class="kpi kpi-violet">
+    <div class="kpi-icon">{{template "icon-users"}}</div>
+    <div>
+      <p class="kpi-value" data-kpi="persons">{{$s.Persons}}</p>
+      <p class="kpi-label">Personen</p>
+    </div>
+  </article>
+</section>
+
+<div class="dashboard-grid">
+  <div class="stack">
+    <section class="card">
+      <div class="card-header">
+        <h2>Bestand nach Typ</h2>
+        <a class="link-more" href="/tarife">Tarife {{template "icon-arrow-right"}}</a>
+      </div>
+      <div class="table-wrap">
+        <table class="type-table">
+          <thead><tr><th>Typ</th><th>Stundenpreis</th><th class="num">Gesamt</th><th class="num">Verfügbar</th><th class="num">Ausgeliehen</th><th class="num">Wartung</th></tr></thead>
+          <tbody>
+          {{range $s.Categories}}
+            <tr>
+              <td><a class="type type-{{.Category.Key}}" href="/fahrraeder?typ={{.Category.Key}}">{{.Category.Label}}</a></td>
+              <td class="nowrap" title="{{.Rule}}">{{index $s.Rates .Category.Key}}</td>
+              <td class="num strong">{{.Total}}</td>
+              <td class="num">{{if .Available}}<span class="badge badge-verfuegbar">{{.Available}}</span>{{else}}<span class="muted">0</span>{{end}}</td>
+              <td class="num">{{if .Rented}}<span class="badge badge-ausgeliehen">{{.Rented}}</span>{{else}}<span class="muted">0</span>{{end}}</td>
+              <td class="num">{{if .Maintenance}}<span class="badge badge-wartung">{{.Maintenance}}</span>{{else}}<span class="muted">0</span>{{end}}</td>
+            </tr>
+          {{end}}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Aktive Ausleihen</h2>
+        <a class="link-more" href="/buchungen?status=aktiv">Alle anzeigen {{template "icon-arrow-right"}}</a>
+      </div>
+      {{if $s.Active}}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fahrrad</th><th>Person</th><th>Rückgabe geplant</th><th><span class="sr-only">Aktion</span></th></tr></thead>
+          <tbody>
+          {{range $s.Active}}
+            <tr>
+              <td><a class="strong" href="/fahrraeder/{{.Item.Item.ID}}">{{.Item.Name}}</a><br>{{template "bike-type" .Item}}</td>
+              <td><a href="/personen/{{.Person.ID}}">{{.Person.FullName}}</a></td>
+              <td class="nowrap">{{formatTime .Booking.PlannedEnd}}{{if .Overdue}}<br><span class="badge badge-overdue">Überfällig</span>{{end}}</td>
+              <td class="cell-action">{{template "booking-action" (dict "View" . "Back" "/")}}</td>
+            </tr>
+          {{end}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+      <div class="empty empty-compact">
+        <div class="empty-icon">{{template "icon-clipboard"}}</div>
+        <p>Keine aktiven Ausleihen</p>
+      </div>
+      {{end}}
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Anstehende Reservierungen</h2>
+        <a class="link-more" href="/buchungen?status=reserviert">Alle anzeigen {{template "icon-arrow-right"}}</a>
+      </div>
+      {{if $s.Upcoming}}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fahrrad</th><th>Person</th><th>Zeitraum</th><th>Preis</th><th><span class="sr-only">Aktion</span></th></tr></thead>
+          <tbody>
+          {{range $s.Upcoming}}
+            <tr {{if .Conflict}}class="row-conflict"{{end}}>
+              <td><a class="strong" href="/fahrraeder/{{.Item.Item.ID}}">{{.Item.Name}}</a><br>{{template "bike-type" .Item}}</td>
+              <td><a href="/personen/{{.Person.ID}}">{{.Person.FullName}}</a>{{if .Conflict}}<br><span class="badge badge-conflict">Konflikt</span>{{end}}</td>
+              <td class="nowrap">{{formatTime .Booking.Start}}<br><span class="muted">bis {{formatTime .Booking.PlannedEnd}}</span></td>
+              <td class="nowrap">{{.Price.Amount}}</td>
+              <td class="cell-action">{{template "booking-action" (dict "View" . "Back" "/")}}</td>
+            </tr>
+          {{end}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+      <div class="empty empty-compact">
+        <div class="empty-icon">{{template "icon-calendar"}}</div>
+        <p>Keine anstehenden Reservierungen</p>
+      </div>
+      {{end}}
+    </section>
+  </div>
+
+  <section class="card">
+    <div class="card-header"><h2>Schnellzugriff</h2></div>
+    <nav class="quick" aria-label="Schnellzugriff">
+      <a class="quick-item quick-green" href="/buchungen/neu">
+        <span class="quick-icon">{{template "icon-plus"}}</span>
+        <span><strong>Fahrrad buchen</strong><small>Ab sofort oder als Reservierung</small></span>
+      </a>
+      <a class="quick-item quick-cyan" href="/verfuegbarkeit">
+        <span class="quick-icon">{{template "icon-search"}}</span>
+        <span><strong>Verfügbarkeit prüfen</strong><small>Freie Räder für einen Zeitraum</small></span>
+      </a>
+      <a class="quick-item quick-orange" href="/buchungen?status=aktiv">
+        <span class="quick-icon">{{template "icon-return"}}</span>
+        <span><strong>Fahrrad zurücknehmen</strong><small>Aktive Ausleihe abschließen</small></span>
+      </a>
+      <a class="quick-item quick-blue" href="/fahrraeder/neu">
+        <span class="quick-icon">{{template "icon-bike"}}</span>
+        <span><strong>Neues Fahrrad</strong><small>In den Bestand aufnehmen</small></span>
+      </a>
+      <a class="quick-item quick-violet" href="/personen/neu">
+        <span class="quick-icon">{{template "icon-user-plus"}}</span>
+        <span><strong>Neue Person</strong><small>Kundin oder Kunde registrieren</small></span>
+      </a>
+    </nav>
+  </section>
+</div>
+{{end}}

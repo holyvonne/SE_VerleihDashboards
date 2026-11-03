@@ -1,0 +1,163 @@
+{{define "actions"}}<a class="btn btn-primary" href="/ausleihen/neu">{{template "icon-plus"}}<span>Neue Ausleihe</span></a>{{end}}
+
+{{define "content"}}{{$s := .Content}}
+{{if $s.Conflicts}}
+<section class="card card-alert" aria-labelledby="conflicts-title">
+  <div class="card-header">
+    <h2 id="conflicts-title">{{template "icon-alert"}} <span>{{len $s.Conflicts}} {{if eq (len $s.Conflicts) 1}}Buchung ist{{else}}Buchungen sind{{end}} durch verspätete Rückgaben gefährdet</span></h2>
+  </div>
+  <p class="muted alert-text">Der Ski ist noch nicht zurück. Warte auf die Rückgabe oder storniere die Buchung.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Ski</th><th>Person</th><th>Zeitraum</th><th>Status</th><th><span class="sr-only">Aktion</span></th></tr></thead>
+      <tbody>
+      {{range $s.Conflicts}}
+        <tr>
+          <td><a href="/ski/{{.Ski.ID}}">{{.Ski.Name}}</a></td>
+          <td><a href="/personen/{{.Person.ID}}">{{.Person.FullName}}</a></td>
+          <td class="nowrap">{{formatTime .Rental.Start}}<br><span class="muted">bis {{formatTime .Rental.PlannedEnd}}</span></td>
+          <td class="nowrap">{{template "rental-badge" .}}</td>
+          <td class="cell-action">{{template "rental-action" (dict "View" . "Back" "/")}}</td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table>
+  </div>
+</section>
+{{end}}
+
+<section class="kpis" aria-label="Kennzahlen">
+  <article class="kpi kpi-green">
+    <div class="kpi-icon">{{template "icon-check"}}</div>
+    <div>
+      <p class="kpi-value" data-kpi="available">{{$s.Available}}</p>
+      <p class="kpi-label">Verfügbare Ski</p>
+    </div>
+  </article>
+  <article class="kpi kpi-orange">
+    <div class="kpi-icon">{{template "icon-clock"}}</div>
+    <div>
+      <p class="kpi-value" data-kpi="rented">{{$s.Rented}}</p>
+      <p class="kpi-label">Ausgeliehen</p>
+      {{if $s.Overdue}}<p class="kpi-hint kpi-hint-danger">davon {{$s.Overdue}} überfällig</p>{{end}}
+    </div>
+  </article>
+  <article class="kpi kpi-teal">
+    <div class="kpi-icon">{{template "icon-calendar"}}</div>
+    <div>
+      <p class="kpi-value" data-kpi="reserved">{{$s.Reserved}}</p>
+      <p class="kpi-label">Reservierungen</p>
+    </div>
+  </article>
+  <article class="kpi kpi-blue">
+    <div class="kpi-icon">{{template "icon-layers"}}</div>
+    <div>
+      <p class="kpi-value" data-kpi="total">{{$s.Total}}</p>
+      <p class="kpi-label">Ski gesamt</p>
+      {{if $s.Maintenance}}<p class="kpi-hint">davon {{$s.Maintenance}} in Wartung</p>{{end}}
+    </div>
+  </article>
+  <article class="kpi kpi-violet">
+    <div class="kpi-icon">{{template "icon-users"}}</div>
+    <div>
+      <p class="kpi-value" data-kpi="persons">{{$s.Persons}}</p>
+      <p class="kpi-label">Personen</p>
+    </div>
+  </article>
+</section>
+
+<div class="dashboard-grid">
+  <div class="stack">
+    <section class="card">
+      <div class="card-header">
+        <h2>Aktive Ausleihen</h2>
+        <a class="link-more" href="/ausleihen?status=aktiv">Alle anzeigen {{template "icon-arrow-right"}}</a>
+      </div>
+      {{if $s.ActiveRentals}}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ski</th><th>Person</th><th>Rückgabe geplant</th><th><span class="sr-only">Aktion</span></th></tr></thead>
+          <tbody>
+          {{range $s.ActiveRentals}}
+            <tr>
+              <td><a href="/ski/{{.Ski.ID}}">{{.Ski.Name}}</a></td>
+              <td><a href="/personen/{{.Person.ID}}">{{.Person.FullName}}</a></td>
+              <td class="nowrap">{{formatTime .Rental.PlannedEnd}}{{if .Overdue}} <span class="badge badge-overdue">Überfällig</span>{{end}}</td>
+              <td class="cell-action">
+                <form method="post" action="/ausleihen/{{.Rental.ID}}/rueckgabe">
+                  <input type="hidden" name="zurueck" value="/">
+                  <button class="btn btn-small btn-secondary" type="submit">{{template "icon-return"}}<span>Zurückgeben</span></button>
+                </form>
+              </td>
+            </tr>
+          {{end}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+      <div class="empty empty-compact">
+        <div class="empty-icon">{{template "icon-clipboard"}}</div>
+        <p>Keine aktiven Ausleihen</p>
+      </div>
+      {{end}}
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Anstehende Reservierungen</h2>
+        <a class="link-more" href="/ausleihen?status=reserviert">Alle anzeigen {{template "icon-arrow-right"}}</a>
+      </div>
+      {{if $s.UpcomingReservations}}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ski</th><th>Person</th><th>Zeitraum</th><th>Preis</th><th><span class="sr-only">Aktion</span></th></tr></thead>
+          <tbody>
+          {{range $s.UpcomingReservations}}
+            <tr>
+              <td><a href="/ski/{{.Ski.ID}}">{{.Ski.Name}}</a></td>
+              <td><a href="/personen/{{.Person.ID}}">{{.Person.FullName}}</a>{{if .Conflict}}<br><span class="badge badge-conflict">Konflikt</span>{{end}}</td>
+              <td class="nowrap">{{formatTime .Rental.Start}}<br><span class="muted">bis {{formatTime .Rental.PlannedEnd}}</span></td>
+              <td class="nowrap">{{.Price}}</td>
+              <td class="cell-action">
+                <form method="post" action="/ausleihen/{{.Rental.ID}}/stornieren">
+                  <input type="hidden" name="zurueck" value="/">
+                  <button class="btn btn-small btn-secondary btn-danger-outline" type="submit">{{template "icon-x"}}<span>Stornieren</span></button>
+                </form>
+              </td>
+            </tr>
+          {{end}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+      <div class="empty empty-compact">
+        <div class="empty-icon">{{template "icon-calendar"}}</div>
+        <p>Keine anstehenden Reservierungen</p>
+      </div>
+      {{end}}
+    </section>
+  </div>
+
+  <section class="card">
+    <div class="card-header"><h2>Schnellzugriff</h2></div>
+    <nav class="quick" aria-label="Schnellzugriff">
+      <a class="quick-item quick-green" href="/ausleihen/neu">
+        <span class="quick-icon">{{template "icon-plus"}}</span>
+        <span><strong>Ski ausleihen / reservieren</strong><small>Zeitraum wählen, Preis sehen, buchen</small></span>
+      </a>
+      <a class="quick-item quick-orange" href="/ausleihen?status=aktiv">
+        <span class="quick-icon">{{template "icon-return"}}</span>
+        <span><strong>Ski zurückgeben</strong><small>Aktive Ausleihe abschließen</small></span>
+      </a>
+      <a class="quick-item quick-blue" href="/ski/neu">
+        <span class="quick-icon">{{template "icon-ski"}}</span>
+        <span><strong>Neuer Ski</strong><small>Ski in den Bestand aufnehmen</small></span>
+      </a>
+      <a class="quick-item quick-violet" href="/personen/neu">
+        <span class="quick-icon">{{template "icon-user-plus"}}</span>
+        <span><strong>Neue Person</strong><small>Kundin oder Kunde registrieren</small></span>
+      </a>
+    </nav>
+  </section>
+</div>
+{{end}}

@@ -1,0 +1,32 @@
+{{/* Gemeinsame Bausteine für Buchungen (F-5.1, F-5.4). Erwartet eine service.RentalView. */}}
+{{define "rental-badge"}}{{if .Overdue}}<span class="badge badge-overdue">Überfällig</span>{{else if eq (print .State) "wartend"}}<span class="badge badge-overdue">Wartet auf Rückgabe</span>{{else if eq (print .State) "reserviert"}}<span class="badge badge-reserviert">Reserviert</span>{{else if eq (print .State) "aktiv"}}<span class="badge badge-ausgeliehen">Aktiv</span>{{else}}<span class="badge badge-closed">Zurückgegeben</span>{{end}}{{if .Conflict}} <span class="badge badge-conflict" title="Der Ski ist noch durch eine überfällige Ausleihe belegt">Konflikt</span>{{end}}{{end}}
+
+{{/* Erwartet dict "View" (service.RentalView) und "Back" (Rücksprungpfad). */}}
+{{define "rental-action"}}{{$v := .View}}{{if eq (print $v.State) "aktiv"}}<form method="post" action="/ausleihen/{{$v.Rental.ID}}/rueckgabe">
+  <input type="hidden" name="zurueck" value="{{.Back}}">
+  <button class="btn btn-small btn-secondary" type="submit">{{template "icon-return"}}<span>Zurückgeben</span></button>
+</form>{{else if or (eq (print $v.State) "reserviert") (eq (print $v.State) "wartend")}}<form method="post" action="/ausleihen/{{$v.Rental.ID}}/stornieren">
+  <input type="hidden" name="zurueck" value="{{.Back}}">
+  <button class="btn btn-small btn-secondary btn-danger-outline" type="submit">{{template "icon-x"}}<span>Stornieren</span></button>
+</form>{{end}}{{end}}
+
+{{/* Tabelle mit Buchungen; erwartet dict "Rows", "Back" und "Show" ("ski" oder "person"). */}}
+{{define "rental-table"}}<div class="table-wrap">
+  <table>
+    <thead><tr><th>{{if eq .Show "ski"}}Ski{{else}}Person{{end}}</th><th>Zeitraum</th><th>Rückgabe</th><th>Dauer</th><th>Preis</th><th>Status</th><th><span class="sr-only">Aktion</span></th></tr></thead>
+    <tbody>
+    {{$back := .Back}}{{$show := .Show}}
+    {{range .Rows}}
+      <tr {{if .Conflict}}class="row-conflict"{{end}}>
+        <td>{{if eq $show "ski"}}<a href="/ski/{{.Ski.ID}}">{{.Ski.Name}}</a>{{else}}<a href="/personen/{{.Person.ID}}">{{.Person.FullName}}</a>{{end}}</td>
+        <td class="nowrap">{{formatTime .Rental.Start}}<br><span class="muted">bis {{formatTime .Rental.PlannedEnd}}</span></td>
+        <td class="nowrap">{{with .Rental.ReturnedAt}}{{formatTime .}}{{else}}<span class="muted">–</span>{{end}}</td>
+        <td class="nowrap">{{formatDuration .Duration}}</td>
+        <td class="nowrap strong">{{.Price}}</td>
+        <td class="nowrap">{{template "rental-badge" .}}</td>
+        <td class="cell-action">{{template "rental-action" (dict "View" . "Back" $back)}}</td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table>
+</div>{{end}}

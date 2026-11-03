@@ -1,0 +1,44 @@
+{{define "layout"}}<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}} · SkiVerleih</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" href="/">
+      <span class="brand-logo">{{template "icon-mountain"}}</span>
+      <span>SkiVerleih</span>
+    </a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="/" {{if eq .Active "dashboard"}}class="active" aria-current="page"{{end}}>{{template "icon-dashboard"}}<span>Dashboard</span></a>
+      <a href="/ski" {{if eq .Active "ski"}}class="active" aria-current="page"{{end}}>{{template "icon-ski"}}<span>Ski</span></a>
+      <a href="/personen" {{if eq .Active "personen"}}class="active" aria-current="page"{{end}}>{{template "icon-users"}}<span>Personen</span></a>
+      <a href="/ausleihen" {{if eq .Active "ausleihen"}}class="active" aria-current="page"{{end}}>{{template "icon-clipboard"}}<span>Ausleihen</span></a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="/ausleihen/neu">{{template "icon-plus"}}<span>Ausleihe</span></a>
+  </aside>
+
+  <main class="main">
+    <header class="page-header">
+      <div>
+        <h1>{{.Title}}</h1>
+        {{with .Subtitle}}<p class="subtitle">{{.}}</p>{{end}}
+      </div>
+      <div class="page-actions">{{block "actions" .}}{{end}}</div>
+    </header>
+    {{with .Flash}}
+    <div class="flash flash-{{.Kind}}" role="{{if eq .Kind "error"}}alert{{else}}status{{end}}">
+      {{if eq .Kind "error"}}{{template "icon-alert"}}{{else}}{{template "icon-check"}}{{end}}
+      <span>{{.Text}}</span>
+    </div>
+    {{end}}
+    {{template "content" .}}
+  </main>
+</div>
+</body>
+</html>
+{{end}}

@@ -1,0 +1,93 @@
+{{define "content"}}{{$f := .Content}}
+<section class="card card-form">
+  {{if not $f.Skis}}
+  <div class="empty">
+    <div class="empty-icon">{{template "icon-ski"}}</div>
+    <p class="empty-title">Es gibt keinen buchbaren Ski.</p>
+    <p>Lege einen Ski an oder beende die Wartung eines Ski.</p>
+    <a class="btn btn-primary" href="/ski/neu">Neuer Ski</a>
+  </div>
+  {{else if not $f.Persons}}
+  <div class="empty">
+    <div class="empty-icon">{{template "icon-users"}}</div>
+    <p class="empty-title">Es ist noch keine Person registriert.</p>
+    <a class="btn btn-primary" href="/personen/neu">Person registrieren</a>
+  </div>
+  {{else}}
+  <form method="post" action="/ausleihen" novalidate>
+    <h2 class="form-section">Ski und Person</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label for="ski_id">Ski *</label>
+        <select id="ski_id" name="ski_id" required {{if index $f.Errors "ski_id"}}class="is-invalid"{{end}}>
+          <option value="">– Ski wählen –</option>
+          {{range $f.Skis}}<option value="{{.Ski.ID}}" {{if eq .Ski.ID $f.SkiID}}selected{{end}}>#{{.Ski.ID}} · {{.Ski.Name}} · {{.Status.Label}}{{with .NextReservation}} · reserviert ab {{formatDate .Start}}{{end}}</option>{{end}}
+        </select>
+        {{with index $f.Errors "ski_id"}}<p class="field-error">{{.}}</p>{{else}}<p class="field-hint">Auch ausgeliehene Ski können für später reserviert werden.</p>{{end}}
+      </div>
+      <div class="field">
+        <label for="person_id">Person *</label>
+        <select id="person_id" name="person_id" required {{if index $f.Errors "person_id"}}class="is-invalid"{{end}}>
+          <option value="">– Person wählen –</option>
+          {{range $f.Persons}}<option value="{{.ID}}" {{if eq .ID $f.PersonID}}selected{{end}}>{{.LastName}}, {{.FirstName}} · {{.MaskedIDNumber}}</option>{{end}}
+        </select>
+        {{with index $f.Errors "person_id"}}<p class="field-error">{{.}}</p>{{else}}<p class="field-hint"><a href="/personen/neu">Neue Person registrieren</a></p>{{end}}
+      </div>
+    </div>
+
+    <h2 class="form-section">Zeitraum</h2>
+    <div class="form-grid">
+      <fieldset class="field datetime {{if index $f.Errors "start"}}is-invalid-group{{end}}">
+        <legend>Verleihbeginn *</legend>
+        <div class="datetime-inputs">
+          <input name="start_date" type="date" value="{{$f.StartDate}}" aria-label="Datum Beginn" required>
+          <input name="start_time" type="time" value="{{$f.StartTime}}" aria-label="Uhrzeit Beginn" required>
+        </div>
+        {{with index $f.Errors "start"}}<p class="field-error">{{.}}</p>{{else}}<p class="field-hint">Liegt der Beginn in der Zukunft, entsteht eine Reservierung.</p>{{end}}
+      </fieldset>
+      <fieldset class="field datetime {{if index $f.Errors "end"}}is-invalid-group{{end}}">
+        <legend>Geplante Rückgabe *</legend>
+        <div class="datetime-inputs">
+          <input name="end_date" type="date" value="{{$f.EndDate}}" aria-label="Datum Rückgabe" required>
+          <input name="end_time" type="time" value="{{$f.EndTime}}" aria-label="Uhrzeit Rückgabe" required>
+        </div>
+        {{with index $f.Errors "end"}}<p class="field-error">{{.}}</p>{{else}}<p class="field-hint">Höchstens 60 Tage nach dem Beginn.</p>{{end}}
+      </fieldset>
+    </div>
+
+    <p class="price-rule">{{template "icon-euro"}}<span><strong>Preisregel:</strong> {{$f.Rule}}</span></p>
+
+    {{with $f.Quote}}
+    <section class="quote" aria-labelledby="quote-title">
+      <div class="quote-main">
+        <h2 id="quote-title">Zusammenfassung</h2>
+        <dl class="facts">
+          <dt>Ski</dt><dd>{{.Ski.Name}}</dd>
+          <dt>Person</dt><dd>{{.Person.FullName}}</dd>
+          <dt>Zeitraum</dt><dd>{{formatTime .Period.Start}} – {{formatTime .Period.End}}</dd>
+          <dt>Art</dt><dd>{{if .IsReservation}}<span class="badge badge-reserviert">Reservierung</span>{{else}}<span class="badge badge-ausgeliehen">Ausleihe ab sofort</span>{{end}}</dd>
+          <dt>Verleihdauer</dt><dd>{{formatDuration .Duration}}</dd>
+          <dt>Rechnung</dt><dd>{{.Explanation}}</dd>
+        </dl>
+      </div>
+      <div class="quote-price">
+        <span class="quote-price-label">Preis</span>
+        <span class="quote-price-value" data-price>{{.Price}}</span>
+      </div>
+    </section>
+    <input type="hidden" name="geprueft" value="{{$f.Token}}">
+    {{end}}
+
+    <div class="form-actions">
+      <a class="btn btn-secondary" href="/ausleihen">Abbrechen</a>
+      {{if $f.Quote}}
+        <button class="btn btn-secondary" type="submit" name="aktion" value="vorschau">Neu berechnen</button>
+        <button class="btn btn-primary" type="submit" name="aktion" value="bestaetigen">{{template "icon-check"}}<span>Verbindlich buchen</span></button>
+      {{else}}
+        <button class="btn btn-primary" type="submit" name="aktion" value="vorschau">{{template "icon-euro"}}<span>Preis berechnen</span></button>
+      {{end}}
+    </div>
+  </form>
+  {{end}}
+</section>
+{{end}}

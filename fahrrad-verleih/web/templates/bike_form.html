@@ -1,0 +1,69 @@
+{{define "content"}}{{$f := .Content}}
+<section class="card card-form">
+  <form method="post" action="{{if $f.ID}}/fahrraeder/{{$f.ID}}{{else}}/fahrraeder{{end}}" novalidate>
+    <h2 class="form-section">Fahrradtyp</h2>
+    <fieldset class="type-picker {{if index $f.Errors "category"}}is-invalid-group{{end}}">
+      <legend class="sr-only">Fahrradtyp *</legend>
+      {{range $f.Categories}}
+      <label class="type-option type-option-{{.Key}}">
+        <input type="radio" name="category" value="{{.Key}}" {{if eq .Key $f.Category}}checked{{end}}>
+        <span class="type-option-body">
+          <strong>{{.Label}}</strong>
+          <small>{{index $f.Rates .Key}}</small>
+        </span>
+      </label>
+      {{end}}
+    </fieldset>
+    {{with index $f.Errors "category"}}<p class="field-error">{{.}}</p>{{end}}
+
+    <h2 class="form-section">Merkmale</h2>
+    <div class="form-grid">
+      {{range $f.Fields}}{{$err := index $f.Errors .FormKey}}{{$val := index $f.Attrs .Key}}
+      <div class="field">
+        <label for="{{.FormKey}}">{{.Label}}{{if .Unit}} ({{.Unit}}){{end}}{{if .Required}} *{{end}}</label>
+        {{if eq (print .Type) "choice"}}
+        <select id="{{.FormKey}}" name="{{.FormKey}}" {{if $err}}class="is-invalid"{{end}}>
+          <option value="">– bitte wählen –</option>
+          {{range .Options}}<option value="{{.Key}}" {{if eq .Key $val}}selected{{end}}>{{.Label}}</option>{{end}}
+        </select>
+        {{else if eq (print .Type) "number"}}
+        <input id="{{.FormKey}}" name="{{.FormKey}}" type="number" inputmode="numeric" min="{{.Min}}" max="{{.Max}}" value="{{$val}}" {{if $err}}class="is-invalid"{{end}}>
+        {{else}}
+        <input id="{{.FormKey}}" name="{{.FormKey}}" value="{{$val}}" {{if .MaxLen}}maxlength="{{.MaxLen}}"{{end}} autocomplete="off" {{if $err}}class="is-invalid"{{end}}>
+        {{end}}
+        {{with $err}}<p class="field-error">{{.}}</p>{{else}}{{with .Hint}}<p class="field-hint">{{.}}</p>{{end}}{{end}}
+      </div>
+      {{end}}
+    </div>
+
+    <h2 class="form-section">Status und Notiz</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label for="status">Status</label>
+        {{if $f.StatusLocked}}
+        <select id="status" disabled>
+          {{range baseStatuses}}<option {{if eq (print .) $f.Status}}selected{{end}}>{{.Label}}</option>{{end}}
+        </select>
+        <input type="hidden" name="status" value="{{$f.Status}}">
+        <p class="field-hint">Gesperrt, solange das Fahrrad ausgeliehen oder reserviert ist.</p>
+        {{else}}
+        <select id="status" name="status" {{if index $f.Errors "status"}}class="is-invalid"{{end}}>
+          {{range baseStatuses}}<option value="{{.}}" {{if eq (print .) $f.Status}}selected{{end}}>{{.Label}}</option>{{end}}
+        </select>
+        {{with index $f.Errors "status"}}<p class="field-error">{{.}}</p>{{end}}
+        {{end}}
+      </div>
+      <div class="field">
+        <label for="note">Notiz</label>
+        <input id="note" name="note" value="{{$f.Note}}" maxlength="200" autocomplete="off" {{if index $f.Errors "note"}}class="is-invalid"{{end}}>
+        {{with index $f.Errors "note"}}<p class="field-error">{{.}}</p>{{else}}<p class="field-hint">optional, z. B. „Sattel neu“</p>{{end}}
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-secondary" href="{{if $f.ID}}/fahrraeder/{{$f.ID}}{{else}}/fahrraeder{{end}}">Abbrechen</a>
+      <button class="btn btn-primary" type="submit">{{if $f.ID}}Speichern{{else}}Fahrrad anlegen{{end}}</button>
+    </div>
+  </form>
+</section>
+{{end}}

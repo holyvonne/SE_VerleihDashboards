@@ -1,0 +1,59 @@
+{{define "content"}}{{$f := .Content}}
+<section class="card card-form">
+  <form method="post" action="{{if $f.ID}}/personen/{{$f.ID}}{{else}}/personen{{end}}" enctype="multipart/form-data" novalidate>
+    <h2 class="form-section">Persönliche Daten</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label for="first_name">Vorname *</label>
+        <input id="first_name" name="first_name" value="{{$f.FirstName}}" maxlength="50" required autocomplete="off" {{if index $f.Errors "first_name"}}class="is-invalid"{{end}}>
+        {{with index $f.Errors "first_name"}}<p class="field-error">{{.}}</p>{{end}}
+      </div>
+      <div class="field">
+        <label for="last_name">Nachname *</label>
+        <input id="last_name" name="last_name" value="{{$f.LastName}}" maxlength="50" required autocomplete="off" {{if index $f.Errors "last_name"}}class="is-invalid"{{end}}>
+        {{with index $f.Errors "last_name"}}<p class="field-error">{{.}}</p>{{end}}
+      </div>
+      <div class="field">
+        <label for="phone">Telefon</label>
+        <input id="phone" name="phone" type="tel" value="{{$f.Phone}}" maxlength="30" autocomplete="off" {{if index $f.Errors "phone"}}class="is-invalid"{{end}}>
+        {{with index $f.Errors "phone"}}<p class="field-error">{{.}}</p>{{else}}<p class="field-hint">optional</p>{{end}}
+      </div>
+      <div class="field">
+        <label for="email">E-Mail</label>
+        <input id="email" name="email" type="email" value="{{$f.Email}}" maxlength="100" autocomplete="off" {{if index $f.Errors "email"}}class="is-invalid"{{end}}>
+        {{with index $f.Errors "email"}}<p class="field-error">{{.}}</p>{{else}}<p class="field-hint">optional</p>{{end}}
+      </div>
+    </div>
+
+    <h2 class="form-section">Ausweis</h2>
+    <div class="form-grid">
+      <div class="field">
+        <label for="id_type">Ausweistyp *</label>
+        <select id="id_type" name="id_type" {{if index $f.Errors "id_type"}}class="is-invalid"{{end}}>
+          {{range idTypes}}<option value="{{.}}" {{if eq (print .) $f.IDType}}selected{{end}}>{{.Label}}</option>{{end}}
+        </select>
+        {{with index $f.Errors "id_type"}}<p class="field-error">{{.}}</p>{{end}}
+      </div>
+      <div class="field">
+        <label for="id_number">Ausweisnummer *</label>
+        <input id="id_number" name="id_number" value="{{$f.IDNumber}}" maxlength="30" required autocomplete="off" class="mono{{if index $f.Errors "id_number"}} is-invalid{{end}}">
+        {{with index $f.Errors "id_number"}}<p class="field-error">{{.}}</p>{{else}}<p class="field-hint">4–30 Buchstaben und Ziffern</p>{{end}}
+      </div>
+      <div class="field field-wide">
+        <label for="id_image">Ausweisbild{{if $f.HasImage}} ersetzen{{end}}</label>
+        <input id="id_image" name="id_image" type="file" accept="image/jpeg,image/png" {{if index $f.Errors "id_image"}}class="is-invalid"{{end}}>
+        {{with index $f.Errors "id_image"}}<p class="field-error">{{.}}</p>{{else}}<p class="field-hint">optional · JPEG oder PNG, max. 2 MB · im Prototyp nur fiktive Testbilder verwenden</p>{{end}}
+        {{if $f.Errors}}<p class="field-hint">Ein bereits gewähltes Bild muss nach einem Fehler erneut ausgewählt werden.</p>{{end}}
+        {{if $f.HasImage}}
+        <label class="checkbox"><input type="checkbox" name="remove_image" value="1" {{if $f.RemoveImage}}checked{{end}}> Gespeichertes Ausweisbild entfernen</label>
+        {{end}}
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-secondary" href="{{if $f.ID}}/personen/{{$f.ID}}{{else}}/personen{{end}}">Abbrechen</a>
+      <button class="btn btn-primary" type="submit">{{if $f.ID}}Speichern{{else}}Person registrieren{{end}}</button>
+    </div>
+  </form>
+</section>
+{{end}}

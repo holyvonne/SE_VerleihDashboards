@@ -1,0 +1,40 @@
+{{/* Gemeinsame Bausteine. Erwartet eine service.BookingView. */}}
+{{define "booking-badge"}}{{if .Overdue}}<span class="badge badge-overdue">Überfällig</span>{{else if eq (print .State) "wartend"}}<span class="badge badge-overdue">Wartet auf Rückgabe</span>{{else if eq (print .State) "reserviert"}}<span class="badge badge-reserviert">Reserviert</span>{{else if eq (print .State) "aktiv"}}<span class="badge badge-ausgeliehen">Aktiv</span>{{else}}<span class="badge badge-closed">Zurückgegeben</span>{{end}}{{if .Conflict}} <span class="badge badge-conflict" title="Das Fahrrad ist noch durch eine überfällige Ausleihe belegt">Konflikt</span>{{end}}{{end}}
+
+{{/* Fahrradtyp mit Farbpunkt; erwartet eine service.ItemView. */}}
+{{define "bike-type"}}<span class="type type-{{.Item.Category}}">{{.CategoryLabel}}</span>{{end}}
+
+{{/* Erwartet dict "View" (service.BookingView) und "Back" (Rücksprungpfad). */}}
+{{define "booking-action"}}{{$v := .View}}{{if $v.CanReturn}}<form method="post" action="/buchungen/{{$v.Booking.ID}}/rueckgabe">
+  <input type="hidden" name="zurueck" value="{{.Back}}">
+  <button class="btn btn-small btn-secondary" type="submit">{{template "icon-return"}}<span>Zurückgeben</span></button>
+</form>{{else if $v.CanCancel}}<a class="btn btn-small btn-secondary" href="/buchungen/{{$v.Booking.ID}}/umbuchen">{{template "icon-swap"}}<span>Umbuchen</span></a>
+<form method="post" action="/buchungen/{{$v.Booking.ID}}/stornieren">
+  <input type="hidden" name="zurueck" value="{{.Back}}">
+  <button class="btn btn-small btn-secondary btn-danger-outline" type="submit">{{template "icon-x"}}<span>Stornieren</span></button>
+</form>{{end}}{{end}}
+
+{{/* Tabelle mit Buchungen; erwartet dict "Rows", "Back" und "Show" ("bike", "person" oder "both"). */}}
+{{define "booking-table"}}<div class="table-wrap">
+  <table>
+    <thead><tr>
+      {{if ne .Show "person"}}<th>Fahrrad</th>{{end}}{{if ne .Show "bike"}}<th>Person</th>{{end}}
+      <th>Zeitraum</th><th>Rückgabe</th><th>Dauer</th><th>Preis</th><th>Status</th><th><span class="sr-only">Aktion</span></th>
+    </tr></thead>
+    <tbody>
+    {{$back := .Back}}{{$show := .Show}}
+    {{range .Rows}}
+      <tr {{if .Conflict}}class="row-conflict"{{end}}>
+        {{if ne $show "person"}}<td><a class="strong" href="/fahrraeder/{{.Item.Item.ID}}">{{.Item.Name}}</a><br>{{template "bike-type" .Item}}</td>{{end}}
+        {{if ne $show "bike"}}<td><a href="/personen/{{.Person.ID}}">{{.Person.FullName}}</a></td>{{end}}
+        <td class="nowrap">{{formatTime .Booking.Start}}<br><span class="muted">bis {{formatTime .Booking.PlannedEnd}}</span></td>
+        <td class="nowrap">{{with .Booking.ReturnedAt}}{{formatTime .}}{{else}}<span class="muted">–</span>{{end}}</td>
+        <td class="nowrap">{{formatDuration .Duration}}</td>
+        <td class="nowrap"><span class="strong">{{.Price.Amount}}</span><br><span class="muted small">{{.Price.Explanation}}</span></td>
+        <td class="nowrap">{{template "booking-badge" .}}</td>
+        <td class="cell-action">{{template "booking-action" (dict "View" . "Back" $back)}}</td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table>
+</div>{{end}}

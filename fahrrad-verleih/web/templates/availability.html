@@ -1,0 +1,67 @@
+{{define "content"}}{{$c := .Content}}
+<section class="card">
+  <form class="search-period" method="get" action="/verfuegbarkeit" novalidate>
+    <fieldset class="field datetime {{if index $c.Errors "start"}}is-invalid-group{{end}}">
+      <legend>Von</legend>
+      <div class="datetime-inputs">
+        <input name="start_date" type="date" value="{{$c.StartDate}}" aria-label="Datum Beginn">
+        <input name="start_time" type="time" value="{{$c.StartTime}}" aria-label="Uhrzeit Beginn">
+      </div>
+      {{with index $c.Errors "start"}}<p class="field-error">{{.}}</p>{{end}}
+    </fieldset>
+    <fieldset class="field datetime {{if index $c.Errors "end"}}is-invalid-group{{end}}">
+      <legend>Bis</legend>
+      <div class="datetime-inputs">
+        <input name="end_date" type="date" value="{{$c.EndDate}}" aria-label="Datum Ende">
+        <input name="end_time" type="time" value="{{$c.EndTime}}" aria-label="Uhrzeit Ende">
+      </div>
+      {{with index $c.Errors "end"}}<p class="field-error">{{.}}</p>{{end}}
+    </fieldset>
+    <div class="field">
+      <label for="typ">Typ</label>
+      <select id="typ" name="typ">
+        <option value="">Alle Typen</option>
+        {{range $c.Categories}}<option value="{{.Key}}" {{if eq .Key $c.Category}}selected{{end}}>{{.Label}}</option>{{end}}
+      </select>
+    </div>
+    <div class="field field-button">
+      <button class="btn btn-primary" type="submit">{{template "icon-search"}}<span>Suchen</span></button>
+    </div>
+  </form>
+</section>
+
+{{if $c.Searched}}
+  {{if $c.Groups}}
+  <p class="result-summary"><strong>{{$c.Count}}</strong> {{if eq $c.Count 1}}Fahrrad ist{{else}}Fahrräder sind{{end}} von {{formatTime $c.Period.Start}} bis {{formatTime $c.Period.End}} frei ({{formatDuration $c.Period.Duration}}).</p>
+  {{range $c.Groups}}
+  <section class="card">
+    <div class="card-header"><h2><span class="type type-{{.Category.Key}}">{{.Category.Label}}</span></h2><span class="muted">{{.Rule}}</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Fahrrad</th><th>Rahmen</th><th>Akku</th><th>Preis</th><th><span class="sr-only">Aktion</span></th></tr></thead>
+        <tbody>
+        {{range .Offers}}{{$b := .View.Item}}
+          <tr>
+            <td><a class="strong" href="/fahrraeder/{{$b.ID}}">{{.View.Name}}</a>{{if eq (print .View.Status) "ausgeliehen"}}<br><span class="muted small">gerade ausgeliehen, im Zeitraum aber frei</span>{{end}}</td>
+            <td>{{$b.Attr "rahmengroesse"}}</td>
+            <td class="nowrap">{{with $b.Attr "akku_wh"}}{{.}} Wh{{else}}<span class="muted">–</span>{{end}}</td>
+            <td class="nowrap"><span class="strong" data-offer-price>{{.Price.Amount}}</span><br><span class="muted small">{{.Price.Explanation}}</span></td>
+            <td class="cell-action"><a class="btn btn-small btn-primary" href="/buchungen/neu?fahrrad={{$b.ID}}&amp;{{$c.BookQuery}}">Buchen</a></td>
+          </tr>
+        {{end}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {{end}}
+  {{else}}
+  <section class="card">
+    <div class="empty">
+      <div class="empty-icon">{{template "icon-bike"}}</div>
+      <p class="empty-title">Im gewählten Zeitraum ist kein passendes Fahrrad frei.</p>
+      <p>Versuche einen anderen Zeitraum oder einen anderen Typ.</p>
+    </div>
+  </section>
+  {{end}}
+{{end}}
+{{end}}

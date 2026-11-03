@@ -1,0 +1,51 @@
+{{define "actions"}}{{$v := .Content.View}}{{$s := $v.Ski}}
+{{if $v.Bookable}}<a class="btn btn-primary" href="/ausleihen/neu?ski={{$s.ID}}">{{template "icon-plus"}}<span>Buchen</span></a>{{end}}
+<a class="btn btn-secondary" href="/ski/{{$s.ID}}/bearbeiten">{{template "icon-edit"}}<span>Bearbeiten</span></a>
+<a class="btn btn-secondary btn-danger-outline" href="/ski/{{$s.ID}}/loeschen">{{template "icon-trash"}}<span>Löschen</span></a>
+{{end}}
+
+{{define "content"}}{{$d := .Content}}{{$v := $d.View}}{{$s := $v.Ski}}{{$back := printf "/ski/%d" $s.ID}}
+<div class="detail-grid">
+  <section class="card">
+    <div class="card-header"><h2>Stammdaten</h2><span class="badge badge-{{$v.Status}}">{{$v.Status.Label}}</span></div>
+    <dl class="facts">
+      <dt>Marke</dt><dd>{{$s.Brand}}</dd>
+      <dt>Modell</dt><dd>{{$s.Model}}</dd>
+      <dt>Länge</dt><dd>{{$s.LengthCM}} cm</dd>
+      <dt>Typ</dt><dd>{{$s.Type.Label}}</dd>
+      <dt>Zustand</dt><dd>{{$s.Condition.Label}}</dd>
+      <dt>Notiz</dt><dd>{{with $s.Note}}{{.}}{{else}}<span class="muted">–</span>{{end}}</dd>
+    </dl>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h2>Aktuelle Ausleihe</h2>{{with $d.Current}}{{template "rental-badge" .}}{{end}}</div>
+    {{with $d.Current}}
+      <dl class="facts">
+        <dt>Person</dt><dd><a href="/personen/{{.Person.ID}}">{{.Person.FullName}}</a></dd>
+        <dt>Beginn</dt><dd>{{formatTime .Rental.Start}}</dd>
+        <dt>Rückgabe geplant</dt><dd>{{formatTime .Rental.PlannedEnd}}</dd>
+        <dt>Preis</dt><dd>{{.Price}}</dd>
+      </dl>
+      <div class="form-actions">{{template "rental-action" (dict "View" . "Back" $back)}}</div>
+    {{else}}
+      <div class="empty empty-compact">
+        <p>{{if $v.Bookable}}Der Ski ist derzeit nicht ausgeliehen.{{else}}Der Ski ist in Wartung.{{end}}</p>
+        {{if $v.Bookable}}<a class="btn btn-secondary" href="/ausleihen/neu?ski={{$s.ID}}">Jetzt buchen</a>{{end}}
+      </div>
+    {{end}}
+  </section>
+</div>
+
+<section class="card">
+  <div class="card-header"><h2>Reservierungen</h2></div>
+  {{if $d.Reservations}}{{template "rental-table" (dict "Rows" $d.Reservations "Back" $back "Show" "person")}}
+  {{else}}<p class="muted">Keine anstehenden Reservierungen.</p>{{end}}
+</section>
+
+<section class="card">
+  <div class="card-header"><h2>Ausleih-Historie</h2></div>
+  {{if $d.History}}{{template "rental-table" (dict "Rows" $d.History "Back" $back "Show" "person")}}
+  {{else}}<p class="muted">Noch keine abgeschlossenen Ausleihen.</p>{{end}}
+</section>
+{{end}}

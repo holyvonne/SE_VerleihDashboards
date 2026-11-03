@@ -1,0 +1,43 @@
+{{define "actions"}}{{$v := .Content.View}}
+{{if $v.Bookable}}<a class="btn btn-primary" href="/buchungen/neu?fahrrad={{$v.Item.ID}}">{{template "icon-plus"}}<span>Buchen</span></a>{{end}}
+<a class="btn btn-secondary" href="/fahrraeder/{{$v.Item.ID}}/bearbeiten">{{template "icon-edit"}}<span>Bearbeiten</span></a>
+<a class="btn btn-secondary btn-danger-outline" href="/fahrraeder/{{$v.Item.ID}}/loeschen">{{template "icon-trash"}}<span>Löschen</span></a>
+{{end}}
+
+{{define "content"}}{{$d := .Content}}{{$v := $d.View}}{{$back := printf "/fahrraeder/%d" $v.Item.ID}}
+<div class="detail-grid">
+  <section class="card">
+    <div class="card-header"><h2>Merkmale</h2>{{template "bike-type" $v}}</div>
+    <dl class="facts">
+      {{range $v.Attributes}}<dt>{{.Field.Label}}</dt><dd>{{with .Display}}{{.}}{{else}}<span class="muted">–</span>{{end}}</dd>{{end}}
+      <dt>Notiz</dt><dd>{{with $v.Item.Note}}{{.}}{{else}}<span class="muted">–</span>{{end}}</dd>
+    </dl>
+  </section>
+  <section class="card">
+    <div class="card-header"><h2>Status und Preis</h2></div>
+    <dl class="facts">
+      <dt>Status</dt><dd><span class="badge badge-{{$v.Status}}">{{$v.Status.Label}}</span></dd>
+      <dt>Nächste Reservierung</dt><dd>{{with $v.NextReservation}}{{formatTime .Start}}{{else}}<span class="muted">keine</span>{{end}}</dd>
+      <dt>Tarif</dt><dd>{{$v.Rule}}</dd>
+    </dl>
+  </section>
+</div>
+
+<section class="card">
+  <div class="card-header"><h2>Aktuelle Ausleihe</h2></div>
+  {{if $d.Current}}{{template "booking-table" (dict "Rows" $d.Current "Back" $back "Show" "person")}}
+  {{else}}<p class="muted">Das Fahrrad ist gerade nicht ausgeliehen.</p>{{end}}
+</section>
+
+<section class="card">
+  <div class="card-header"><h2>Reservierungen</h2></div>
+  {{if $d.Upcoming}}{{template "booking-table" (dict "Rows" $d.Upcoming "Back" $back "Show" "person")}}
+  {{else}}<p class="muted">Keine anstehenden Reservierungen.</p>{{end}}
+</section>
+
+<section class="card">
+  <div class="card-header"><h2>Historie</h2></div>
+  {{if $d.History}}{{template "booking-table" (dict "Rows" $d.History "Back" $back "Show" "person")}}
+  {{else}}<p class="muted">Noch keine abgeschlossenen Ausleihen.</p>{{end}}
+</section>
+{{end}}

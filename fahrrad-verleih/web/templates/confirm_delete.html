@@ -1,0 +1,21 @@
+{{define "content"}}{{$c := .Content}}
+<section class="card card-narrow">
+  {{if $c.Blocked}}
+  <div class="empty">
+    <div class="empty-icon empty-icon-danger">{{template "icon-alert"}}</div>
+    <p class="empty-title">{{$c.Blocked}}</p>
+    <a class="btn btn-primary" href="{{$c.Cancel}}">Zurück</a>
+  </div>
+  {{else}}
+  <div class="empty">
+    <div class="empty-icon empty-icon-danger">{{template "icon-trash"}}</div>
+    <p class="empty-title">Wirklich {{$c.What}} löschen?</p>
+    <p>Diese Aktion kann nicht rückgängig gemacht werden.</p>
+    <form method="post" action="{{$c.Action}}" class="button-row">
+      <a class="btn btn-secondary" href="{{$c.Cancel}}">Abbrechen</a>
+      <button class="btn btn-danger" type="submit">{{template "icon-trash"}}<span>Endgültig löschen</span></button>
+    </form>
+  </div>
+  {{end}}
+</section>
+{{end}}

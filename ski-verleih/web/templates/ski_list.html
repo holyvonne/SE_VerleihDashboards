@@ -1,0 +1,48 @@
+{{define "actions"}}<a class="btn btn-primary" href="/ski/neu">{{template "icon-plus"}}<span>Neuer Ski</span></a>{{end}}
+
+{{define "content"}}{{$c := .Content}}
+<section class="card">
+  <nav class="tabs" aria-label="Nach Status filtern">
+    {{range $c.Tabs}}<a href="{{.URL}}" {{if .Active}}class="active" aria-current="page"{{end}}>{{.Label}}</a>{{end}}
+  </nav>
+
+  {{if $c.Skis}}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Marke / Modell</th><th>Länge</th><th>Typ</th><th>Zustand</th><th>Status</th><th><span class="sr-only">Aktionen</span></th></tr></thead>
+      <tbody>
+      {{range $c.Skis}}{{$s := .Ski}}
+        <tr>
+          <td class="muted">{{$s.ID}}</td>
+          <td><a class="strong" href="/ski/{{$s.ID}}">{{$s.Brand}} {{$s.Model}}</a></td>
+          <td class="nowrap">{{$s.LengthCM}} cm</td>
+          <td>{{$s.Type.Label}}</td>
+          <td>{{$s.Condition.Label}}</td>
+          <td class="nowrap">
+            <span class="badge badge-{{.Status}}">{{.Status.Label}}</span>
+            {{with .NextReservation}}<br><span class="muted small">reserviert ab {{formatDate .Start}}</span>{{end}}
+          </td>
+          <td class="cell-action">
+            {{if .Bookable}}<a class="btn btn-small btn-primary" href="/ausleihen/neu?ski={{$s.ID}}">Buchen</a>{{end}}
+            <a class="btn btn-small btn-secondary" href="/ski/{{$s.ID}}/bearbeiten" aria-label="Ski {{$s.ID}} bearbeiten">{{template "icon-edit"}}</a>
+          </td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else if $c.Filtered}}
+  <div class="empty">
+    <div class="empty-icon">{{template "icon-ski"}}</div>
+    <p>Keine Ski mit diesem Status.</p>
+    <a class="btn btn-secondary" href="/ski">Alle Ski anzeigen</a>
+  </div>
+  {{else}}
+  <div class="empty">
+    <div class="empty-icon">{{template "icon-ski"}}</div>
+    <p>Noch keine Ski erfasst.</p>
+    <a class="btn btn-primary" href="/ski/neu">Ersten Ski anlegen</a>
+  </div>
+  {{end}}
+</section>
+{{end}}

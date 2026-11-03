@@ -1,0 +1,52 @@
+{{define "actions"}}{{$p := .Content.Person}}
+<a class="btn btn-primary" href="/ausleihen/neu?person={{$p.ID}}">{{template "icon-plus"}}<span>Ski ausleihen</span></a>
+<a class="btn btn-secondary" href="/personen/{{$p.ID}}/bearbeiten">{{template "icon-edit"}}<span>Bearbeiten</span></a>
+<a class="btn btn-secondary btn-danger-outline" href="/personen/{{$p.ID}}/loeschen">{{template "icon-trash"}}<span>Löschen</span></a>
+{{end}}
+
+{{define "content"}}{{$d := .Content}}{{$p := $d.Person}}{{$back := printf "/personen/%d" $p.ID}}
+<div class="detail-grid">
+  <section class="card">
+    <div class="card-header"><h2>Kontakt</h2></div>
+    <dl class="facts">
+      <dt>Vorname</dt><dd>{{$p.FirstName}}</dd>
+      <dt>Nachname</dt><dd>{{$p.LastName}}</dd>
+      <dt>Telefon</dt><dd>{{with $p.Phone}}{{.}}{{else}}<span class="muted">–</span>{{end}}</dd>
+      <dt>E-Mail</dt><dd>{{with $p.Email}}{{.}}{{else}}<span class="muted">–</span>{{end}}</dd>
+    </dl>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h2>Ausweis</h2></div>
+    <dl class="facts">
+      <dt>Typ</dt><dd>{{$p.IDType.Label}}</dd>
+      <dt>Nummer</dt><dd class="mono">{{$p.IDNumber}}</dd>
+    </dl>
+    {{if $p.HasIDImage}}
+      <a class="id-image" href="/personen/{{$p.ID}}/ausweisbild" target="_blank" rel="noopener">
+        <img src="/personen/{{$p.ID}}/ausweisbild" alt="Ausweisbild von {{$p.FullName}}">
+      </a>
+    {{else}}
+      <div class="id-image id-image-empty">{{template "icon-id"}}<span>Kein Ausweisbild hinterlegt</span></div>
+    {{end}}
+  </section>
+</div>
+
+<section class="card">
+  <div class="card-header"><h2>Aktive Ausleihen</h2></div>
+  {{if $d.Active}}{{template "rental-table" (dict "Rows" $d.Active "Back" $back "Show" "ski")}}
+  {{else}}<p class="muted">Keine aktiven Ausleihen.</p>{{end}}
+</section>
+
+<section class="card">
+  <div class="card-header"><h2>Reservierungen</h2></div>
+  {{if $d.Reservations}}{{template "rental-table" (dict "Rows" $d.Reservations "Back" $back "Show" "ski")}}
+  {{else}}<p class="muted">Keine anstehenden Reservierungen.</p>{{end}}
+</section>
+
+<section class="card">
+  <div class="card-header"><h2>Ausleih-Historie</h2></div>
+  {{if $d.History}}{{template "rental-table" (dict "Rows" $d.History "Back" $back "Show" "ski")}}
+  {{else}}<p class="muted">Noch keine abgeschlossenen Ausleihen.</p>{{end}}
+</section>
+{{end}}

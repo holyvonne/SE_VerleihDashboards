@@ -1,0 +1,18 @@
+{{define "actions"}}<a class="btn btn-primary" href="/buchungen/neu">{{template "icon-plus"}}<span>Neue Buchung</span></a>{{end}}
+
+{{define "content"}}{{$c := .Content}}
+<section class="card">
+  <nav class="tabs" aria-label="Nach Zustand filtern">
+    {{range $c.Tabs}}<a href="{{.URL}}" {{if .Active}}class="active" aria-current="page"{{end}}>{{.Label}}</a>{{end}}
+  </nav>
+  {{if $c.Bookings}}
+    {{template "booking-table" (dict "Rows" $c.Bookings "Back" $c.Back "Show" "both")}}
+  {{else}}
+  <div class="empty">
+    <div class="empty-icon">{{template "icon-clipboard"}}</div>
+    <p>{{if eq $c.Filter "aktiv"}}Keine aktiven Ausleihen.{{else if eq $c.Filter "reserviert"}}Keine anstehenden Reservierungen.{{else if eq $c.Filter "abgeschlossen"}}Noch keine abgeschlossenen Ausleihen.{{else}}Noch keine Buchungen.{{end}}</p>
+    <a class="btn btn-primary" href="/buchungen/neu">Fahrrad buchen</a>
+  </div>
+  {{end}}
+</section>
+{{end}}

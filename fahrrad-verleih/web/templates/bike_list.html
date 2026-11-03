@@ -1,0 +1,52 @@
+{{define "actions"}}<a class="btn btn-primary" href="/fahrraeder/neu">{{template "icon-plus"}}<span>Neues Fahrrad</span></a>{{end}}
+
+{{define "content"}}{{$c := .Content}}
+<section class="card">
+  <nav class="tabs" aria-label="Nach Status filtern">
+    {{range $c.StatusTabs}}<a href="{{.URL}}" {{if .Active}}class="active" aria-current="page"{{end}}>{{.Label}}</a>{{end}}
+  </nav>
+  <nav class="chips" aria-label="Nach Typ filtern">
+    {{range $c.TypeTabs}}<a href="{{.URL}}" {{if .Active}}class="active" aria-current="page"{{end}}>{{.Label}}</a>{{end}}
+  </nav>
+
+  {{if $c.Bikes}}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Fahrrad</th><th>Typ</th><th>Rahmen</th><th>Akku</th><th>Preis</th><th>Status</th><th><span class="sr-only">Aktionen</span></th></tr></thead>
+      <tbody>
+      {{range $c.Bikes}}{{$b := .Item}}
+        <tr>
+          <td class="muted">{{$b.ID}}</td>
+          <td><a class="strong" href="/fahrraeder/{{$b.ID}}">{{.Name}}</a></td>
+          <td class="nowrap">{{template "bike-type" .}}</td>
+          <td>{{$b.Attr "rahmengroesse"}}</td>
+          <td class="nowrap">{{with $b.Attr "akku_wh"}}{{.}} Wh{{else}}<span class="muted">–</span>{{end}}</td>
+          <td class="nowrap" title="{{.Rule}}">{{index $c.Rates $b.Category}}</td>
+          <td class="nowrap">
+            <span class="badge badge-{{.Status}}">{{.Status.Label}}</span>
+            {{with .NextReservation}}<br><span class="muted small">reserviert ab {{formatTime .Start}}</span>{{end}}
+          </td>
+          <td class="cell-action">
+            {{if .Bookable}}<a class="btn btn-small btn-primary" href="/buchungen/neu?fahrrad={{$b.ID}}">Buchen</a>{{end}}
+            <a class="btn btn-small btn-secondary" href="/fahrraeder/{{$b.ID}}/bearbeiten" aria-label="Fahrrad {{$b.ID}} bearbeiten">{{template "icon-edit"}}</a>
+          </td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else if $c.Filtered}}
+  <div class="empty">
+    <div class="empty-icon">{{template "icon-bike"}}</div>
+    <p>Keine Fahrräder für diesen Filter.</p>
+    <a class="btn btn-secondary" href="/fahrraeder">Alle Fahrräder anzeigen</a>
+  </div>
+  {{else}}
+  <div class="empty">
+    <div class="empty-icon">{{template "icon-bike"}}</div>
+    <p>Noch keine Fahrräder erfasst.</p>
+    <a class="btn btn-primary" href="/fahrraeder/neu">Erstes Fahrrad anlegen</a>
+  </div>
+  {{end}}
+</section>
+{{end}}
